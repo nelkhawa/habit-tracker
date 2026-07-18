@@ -1,0 +1,189 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #fafafa;
+  color: #1a1a1a;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 100%;
+  margin: 0;
+  padding: 1.5rem 2rem 3rem;
+  position: relative;
+  text-align: left;
+}
+
+.learn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+
+.feature-card {
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.mini-btn {
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.12s;
+}
+.mini-btn:hover { opacity: 0.85; }
+
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: underline;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 28, 0.35);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 5vh 16px;
+  z-index: 100;
+}
+
+.modal {
+  background: #fafafa;
+  border-radius: 16px;
+  padding: 20px;
+  width: 560px;
+  max-width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: rgba(0, 0, 0, 0.15) 0 10px 30px -5px;
+  text-align: left;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nav-btn {
+  border: 0.5px solid #ddd;
+  border-radius: 8px;
+  background: transparent;
+  padding: 3px 10px;
+  cursor: pointer;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 0.75rem;
+}
+
+.card {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.ghost-btn {
+  padding: 5px 14px;
+  border-radius: 8px;
+  border: 0.5px solid #ddd;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1a1a1a;
+  font-family: inherit;
+}
+
+.cal-grid {
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+}
+
+.cal-header {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-bottom: 0.5px solid #eee;
+}
+
+.cal-day-head {
+  text-align: center;
+  padding: 7px 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+}
+
+.cal-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.cal-cell {
+  padding: 8px 6px;
+  min-height: 220px;
+  vertical-align: top;
+  overflow: hidden;
+}
+
+.cal-date {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  text-align: right;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: 140px repeat(7, minmax(0, 1fr));
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+}
+
+.week-completion {
+  display: grid;
+  grid-template-columns: 140px repeat(7, minmax(0, 1fr));
+  margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .learn-grid { grid-template-columns: 1fr; }
+  .app { padding: 1rem 0.75rem 2rem; }
+  .cal-cell { min-height: 110px; padding: 4px; }
+  .week-grid { grid-template-columns: 90px repeat(7, minmax(0, 1fr)); }
+  .week-completion { grid-template-columns: 90px repeat(7, minmax(0, 1fr)); }
+}

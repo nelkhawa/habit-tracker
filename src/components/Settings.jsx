@@ -33,6 +33,13 @@ export default function Settings({ habits, onHabitsChange, coachContext, onCoach
   };
 
   const update = (id, patch) => onHabitsChange(habits.map(h => h.id === id ? { ...h, ...patch } : h));
+  const move = (i, dir) => {
+    const j = i + dir;
+    if (j < 0 || j >= habits.length) return;
+    const next = [...habits];
+    [next[i], next[j]] = [next[j], next[i]];
+    onHabitsChange(next);
+  };
   const cycleColor = h => {
     const i = PALETTE.findIndex(p => p.color === h.color);
     const next = PALETTE[(i + 1) % PALETTE.length];
@@ -96,8 +103,14 @@ export default function Settings({ habits, onHabitsChange, coachContext, onCoach
 
         <div style={section}>Habits</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {habits.map(h => (
+          {habits.map((h, i) => (
             <div key={h.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
+                <button onClick={() => move(i, -1)} disabled={i === 0} title="Move up"
+                  style={{ border: "none", background: "none", cursor: i === 0 ? "default" : "pointer", color: i === 0 ? "#ddd" : "#888", fontSize: 9, padding: "0 2px", lineHeight: 1.2 }}>▲</button>
+                <button onClick={() => move(i, 1)} disabled={i === habits.length - 1} title="Move down"
+                  style={{ border: "none", background: "none", cursor: i === habits.length - 1 ? "default" : "pointer", color: i === habits.length - 1 ? "#ddd" : "#888", fontSize: 9, padding: "0 2px", lineHeight: 1.2 }}>▼</button>
+              </div>
               <button onClick={() => cycleColor(h)} title="Change color"
                 style={{ width: 18, height: 18, borderRadius: 5, background: h.color, border: "none", cursor: "pointer", flexShrink: 0 }} />
               <input style={{ ...input, flex: 1, minWidth: 0 }} value={h.label} onChange={e => update(h.id, { label: e.target.value })} />

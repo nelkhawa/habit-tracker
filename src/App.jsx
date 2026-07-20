@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { MONTHS, todayStr, daysInMonth, pad } from "./lib/dates";
 import { loadHabits, saveHabits } from "./lib/habits";
 import { getKey, computeStreak, getMonthStats, buildAnalysisData } from "./lib/stats";
 import { buildPrompt, generateAnalysis } from "./lib/analysis";
 import { loadWords, saveWords, loadSrs, saveSrs, loadLog, saveLog, SAMPLE_WORDS } from "./lib/vocab";
+import { getSyncConfig, syncNow, markDirty, schedulePush } from "./lib/sync";
 import Confetti from "./components/Confetti";
 import MonthView from "./components/MonthView";
 import WeekView from "./components/WeekView";
@@ -15,6 +16,9 @@ import Settings from "./components/Settings";
 
 const readJSON = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || "null") ?? fallback; } catch { return fallback; } };
 const writeJSON = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ } };
+
+// mark local data changed + queue a background push to the sync store
+const touch = () => { markDirty(); schedulePush(); };
 
 export default function App() {
   const now = new Date();
@@ -40,6 +44,17 @@ export default function App() {
   const prevAllDone = useRef(false);
   const tk = todayStr();
 
+  // On open (and whenever the tab regains focus), pull remote state; if
+  // another device wrote more recently, apply it and reload the UI.
+  useEffect(() => {
+    if (!getSyncConfig()?.code) return;
+    const run = () => syncNow().then(r => { if (r.status === "applied") window.location.reload(); }).catch(() => {});
+    run();
+    const onVisible = () => { if (document.visibilityState === "visible") run(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
+
   const daily = habits.filter(h => !h.weekly);
 
   const mk = `${year}_${month}`;
@@ -53,21 +68,22 @@ export default function App() {
   const toggle = (hid, y, m, d) => {
     const k = getKey(hid, y, m, d);
     const next = { ...checked, [k]: !checked[k] };
-    setChecked(next); writeJSON("ht_checked", next);
+    setChecked(next); writeJSON("ht_checked", next); touch();
     const allDone = daily.every(h => next[getKey(h.id, now.getFullYear(), now.getMonth(), now.getDate())]);
     if (allDone && !prevAllDone.current) { setConfetti(true); setTimeout(() => setConfetti(false), 4500); }
     prevAllDone.current = allDone;
   };
 
-  const updateHabits = next => { setHabits(next); saveHabits(next); };
-  const updateWords = next => { setWords(next); saveWords(next); };
-  const updateSrs = next => { setSrs(next); saveSrs(next); };
-  const updateVocabLog = next => { setVocabLog(next); saveLog(next); };
-  const updateCoach = text => { setCoachContext(text); try { localStorage.setItem("ht_coach_context", text); } catch { /* ignore */ } };
-  const saveTil = (key, text) => { const next = { ...til, [key]: text }; setTil(next); writeJSON("ht_til", next); };
+  const updateHabits = next => { setHabits(next); saveHabits(next); touch(); };
+  const updateWords = next => { setWords(next); saveWords(next); touch(); };
+  const updateSrs = next => { setSrs(next); saveSrs(next); touch(); };
+  const updateVocabLog = next => { setVocabLog(next); saveLog(next); touch(); };
+  const updateCoach = text => { setCoachContext(text); try { localStorage.setItem("ht_coach_context", text); } catch { /* ignore */ } touch(); };
+  const saveTil = (key, text) => { const next = { ...til, [key]: text }; setTil(next); writeJSON("ht_til", next); touch(); };
   const saveRefl = () => {
     try { localStorage.setItem(`ht_refl_${mk}`, reflection); } catch { /* ignore */ }
     setReflEdits(edits => { const next = { ...edits }; delete next[mk]; return next; });
+    touch();
   };
 
   const runAnalysis = async () => {
@@ -88,6 +104,7 @@ export default function App() {
       const text = await generateAnalysis(prompt);
       setAnalysisMap(a => ({ ...a, [mk]: text }));
       localStorage.setItem(`ht_analysis_${mk}`, text);
+      touch();
     } catch (err) {
       setAnalysisErrors(e => ({ ...e, [mk]: err?.message || "Something went wrong." }));
     }

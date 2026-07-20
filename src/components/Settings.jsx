@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { PALETTE, makeHabitId } from "../lib/habits";
 import { parseImport } from "../lib/vocab";
+import { getSyncConfig, enableSync, connectSync, disableSync } from "../lib/sync";
 
 // Settings panel: edit habits, coach context for the AI analysis, vocabulary
 // list, and data export/import. Everything persists to localStorage.
@@ -9,6 +10,27 @@ export default function Settings({ habits, onHabitsChange, coachContext, onCoach
   const [importText, setImportText] = useState("");
   const [importMsg, setImportMsg] = useState("");
   const [showWords, setShowWords] = useState(false);
+  const [syncCfg, setSyncCfg] = useState(getSyncConfig);
+  const [connectCode, setConnectCode] = useState("");
+  const [syncMsg, setSyncMsg] = useState("");
+  const [syncBusy, setSyncBusy] = useState(false);
+
+  const startSync = async () => {
+    setSyncBusy(true); setSyncMsg("");
+    try { await enableSync(); setSyncCfg(getSyncConfig()); setSyncMsg("Sync enabled — enter this code on your other devices."); }
+    catch (err) { disableSync(); setSyncMsg(`Couldn't enable sync: ${err.message}`); }
+    setSyncBusy(false);
+  };
+
+  const joinSync = async () => {
+    setSyncBusy(true); setSyncMsg("");
+    try {
+      const r = await connectSync(connectCode);
+      if (r.status === "applied") { window.location.reload(); return; }
+      setSyncCfg(getSyncConfig()); setSyncMsg("Connected. This device's data is now the shared copy.");
+    } catch (err) { disableSync(); setSyncMsg(`Couldn't connect: ${err.message}`); }
+    setSyncBusy(false);
+  };
 
   const update = (id, patch) => onHabitsChange(habits.map(h => h.id === id ? { ...h, ...patch } : h));
   const cycleColor = h => {
@@ -127,6 +149,36 @@ export default function Settings({ habits, onHabitsChange, coachContext, onCoach
             ))}
           </div>
         )}
+
+        <div style={section}>Sync across devices</div>
+        {syncCfg?.code ? (
+          <>
+            <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>
+              Enter this code in Settings on your other device to share one set of data:
+            </div>
+            <div style={{ fontFamily: "ui-monospace, monospace", fontSize: 16, fontWeight: 600, letterSpacing: "0.05em", color: "#1a1a1a", background: "#f0f0f0", borderRadius: 8, padding: "8px 12px", margin: "6px 0", userSelect: "all" }}>
+              {syncCfg.code}
+            </div>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              {syncCfg.lastSync && <span style={{ fontSize: 11, color: "#5BA898" }}>Last synced {new Date(syncCfg.lastSync).toLocaleTimeString()}</span>}
+              <button className="link-btn" style={{ color: "#c77" }} onClick={() => { disableSync(); setSyncCfg(null); setSyncMsg(""); }}>disable sync on this device</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6, marginBottom: 8 }}>
+              Keep your data identical on laptop and phone. Changes sync automatically whenever the app is open.
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <button className="ghost-btn" disabled={syncBusy} onClick={startSync}>Enable sync (new code)</button>
+              <span style={{ fontSize: 11, color: "#aaa" }}>or</span>
+              <input style={{ ...input, width: 190, fontFamily: "ui-monospace, monospace" }} placeholder="XXXX-XXXX-XXXX-XXXX"
+                value={connectCode} onChange={e => setConnectCode(e.target.value)} onKeyDown={e => e.key === "Enter" && joinSync()} />
+              <button className="ghost-btn" disabled={syncBusy || !connectCode.trim()} onClick={joinSync}>Connect</button>
+            </div>
+          </>
+        )}
+        {syncMsg && <div style={{ fontSize: 12, color: syncMsg.startsWith("Couldn't") ? "#B0563C" : "#5BA898", marginTop: 6 }}>{syncMsg}</div>}
 
         <div style={section}>Data</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

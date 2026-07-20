@@ -14,6 +14,7 @@ Built with React + Vite, deployed on Vercel. All data lives in your browser's lo
 - **Vocabulary trainer** — import words you collect while reading and get a short spaced-repetition quiz each day (Leitner boxes: correct answers push reviews further out, misses reset). Strong words flip direction — you recall the word from its definition.
 - **Monthly reflection** — evidence-based prompts plus a free-form journal, saved per month.
 - **Confetti** — finish every daily habit and you've earned it.
+- **Cross-device sync** — optional, no accounts: enable sync to get a private code, enter it on another device, and both share one copy of the data (stored in Vercel Blob via a serverless endpoint; the code never leaves your devices — only its SHA-256 hash is used as the storage key). Last write wins; syncs on every change and whenever the app regains focus.
 - **Backup / restore** — export all data as JSON, restore on any device.
 
 ## Running it yourself
@@ -31,6 +32,10 @@ The tracker ships with example habits — replace them with your own in **Settin
 ### AI analysis setup
 
 In production the analysis runs through `api/analyze.js`, a Vercel serverless function, so the API key never reaches the browser. Deploy to Vercel and set `ANTHROPIC_API_KEY` in the project's environment variables.
+
+### Sync setup
+
+Cross-device sync needs a [Vercel Blob](https://vercel.com/docs/vercel-blob) store connected to the project (Storage → Create → Blob). That auto-provisions `BLOB_READ_WRITE_TOKEN` for `api/sync.js`; no other configuration. Without a store, the app still works — sync just reports it's unavailable.
 
 For local development (`npm run dev`), Vite doesn't serve the `api/` folder, so the app falls back to calling the Claude API directly from the browser using `VITE_ANTHROPIC_API_KEY` from `.env`. That fallback is for development only — don't ship a `VITE_`-prefixed key to production, since Vite inlines those into the public bundle.
 

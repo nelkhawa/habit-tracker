@@ -12,6 +12,7 @@ import WeekView from "./components/WeekView";
 import QuarterView from "./components/QuarterView";
 import LearnedCard from "./components/LearnedCard";
 import VocabCard from "./components/VocabCard";
+import MasterList from "./components/MasterList";
 import Settings from "./components/Settings";
 
 const readJSON = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || "null") ?? fallback; } catch { return fallback; } };
@@ -179,6 +180,8 @@ export default function App() {
           onOpenSettings={() => setShowSettings(true)}
           onLoadSamples={() => updateWords([...words, ...SAMPLE_WORDS])} />
       </div>
+
+      <MasterList />
 
       <div className="nav-row">
         <div style={{ display: "flex", gap: 2, background: "#f0f0f0", padding: 3, borderRadius: 10 }}>

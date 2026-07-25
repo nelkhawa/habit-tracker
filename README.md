@@ -15,6 +15,7 @@ Built with React + Vite, deployed on Vercel. All data lives in your browser's lo
 - **Monthly reflection** — evidence-based prompts plus a free-form journal, saved per month.
 - **Confetti** — finish every daily habit and you've earned it.
 - **Cross-device sync** — optional, no accounts: enable sync to get a private code, enter it on another device, and both share one copy of the data (stored in Vercel Blob via a serverless endpoint; the code never leaves your devices — only its SHA-256 hash is used as the storage key). Last write wins; syncs on every change and whenever the app regains focus.
+- **Master list (Notion two-way sync)** — an expandable to-do panel with one section per area of your life, each mirrored to a Notion page. Ticking or adding a task here writes real checkbox blocks to Notion; edits made in Notion show up on the next refresh. The endpoint locates your to-do cluster wherever it lives on the page (top-level checkboxes or inside a callout) and inserts new tasks there.
 - **Backup / restore** — export all data as JSON, restore on any device.
 
 ## Running it yourself
@@ -36,6 +37,17 @@ In production the analysis runs through `api/analyze.js`, a Vercel serverless fu
 ### Sync setup
 
 Cross-device sync needs a [Vercel Blob](https://vercel.com/docs/vercel-blob) store connected to the project (Storage → Create → Blob). That auto-provisions `BLOB_READ_WRITE_TOKEN` for `api/sync.js`; no other configuration. Without a store, the app still works — sync just reports it's unavailable.
+
+### Master list (Notion) setup
+
+1. Create an internal integration at [notion.so/profile/integrations](https://www.notion.so/profile/integrations) and copy its secret.
+2. In Notion, open each to-do page → ⋯ → Connections → add your integration.
+3. Set three Vercel env vars and redeploy:
+   - `NOTION_TOKEN` — the integration secret
+   - `NOTION_TODO_PAGES` — JSON mapping section names to page ids, e.g. `{"work": "<pageId>", "side project": "<pageId>"}`
+   - `TODO_ACCESS_HASH` — SHA-256 hex of your sync id, which is itself SHA-256 of `habit-tracker:<YOUR-SYNC-CODE>`; this gates the endpoint so only your devices can read your tasks. (`printf '<sync-id>' | shasum -a 256`)
+
+Sync must be enabled in the app — the master list authenticates with your sync identity.
 
 For local development (`npm run dev`), Vite doesn't serve the `api/` folder, so the app falls back to calling the Claude API directly from the browser using `VITE_ANTHROPIC_API_KEY` from `.env`. That fallback is for development only — don't ship a `VITE_`-prefixed key to production, since Vite inlines those into the public bundle.
 

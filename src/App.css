@@ -59,6 +59,33 @@ body {
   z-index: 100;
 }
 
+.todo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 600px) {
+  .todo-grid { grid-template-columns: 1fr; }
+}
+
+.todo-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.todo-delete {
+  background: none;
+  border: none;
+  color: #c77;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px;
+  opacity: 0;
+  transition: opacity 0.12s;
+  flex-shrink: 0;
+}
+.todo-row:hover .todo-delete { opacity: 1; }
+
 .modal {
   background: #fafafa;
   border-radius: 16px;

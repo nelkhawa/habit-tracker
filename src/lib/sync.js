@@ -32,6 +32,13 @@ async function syncIdFromCode(code) {
   return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+// The sync id doubles as the auth header for personal endpoints (/api/todos).
+export async function getSyncId() {
+  const cfg = getSyncConfig();
+  if (!cfg?.code) return null;
+  return syncIdFromCode(cfg.code);
+}
+
 export const markDirty = () => {
   try { localStorage.setItem(MODIFIED_KEY, String(Date.now())); } catch { /* ignore */ }
 };
